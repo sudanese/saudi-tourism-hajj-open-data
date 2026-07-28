@@ -20,8 +20,7 @@ try:
 except ImportError:
     sys.exit("pip install openpyxl")
 
-F = os.environ.get("MOHU_FILES",
-                   "/Users/samer/knowledgevalute/hajj-umrah-open-data/files")
+F = os.environ.get("MOHU_FILES", "./source-data/files")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
 
 MONTHS = ["Muharram", "Safar", "Rabi I", "Rabi II", "Jumada I", "Jumada II",
@@ -255,8 +254,7 @@ if dom:
 # =====================================================================
 import glob
 
-TF = os.environ.get("TOURISM_FILES",
-                    "/Users/samer/knowledgevalute/hajj-umrah-open-data/national-platform/tourism")
+TF = os.environ.get("TOURISM_FILES", "./source-data/tourism")
 
 def trows(pat):
     g = sorted(glob.glob(os.path.join(TF, pat + "*.xlsx")))
