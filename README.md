@@ -1,5 +1,7 @@
 # Tourism, Hajj & Umrah — Saudi Arabia in open data
 
+Built by [Samer Ajlawi](https://www.linkedin.com/in/ajlawi/). MIT licensed — issues and PRs welcome.
+
 A public dashboard over Saudi government open data:
 
 - **Ministry of Hajj & Umrah** open-data library — pilgrim volumes, seasonality, permits,
