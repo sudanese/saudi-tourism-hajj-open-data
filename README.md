@@ -2,6 +2,8 @@
 
 Built by [Samer Ajlawi](https://www.linkedin.com/in/ajlawi/). MIT licensed — issues and PRs welcome.
 
+**Bilingual**: full English and Arabic (RTL) interface — the العربية / English button re-renders every chart, tooltip, table and caption in place. Language and theme choices persist in localStorage. Charts stay LTR internally in Arabic, as is conventional for numeric dashboards.
+
 A public dashboard over Saudi government open data:
 
 - **Ministry of Hajj & Umrah** open-data library — pilgrim volumes, seasonality, permits,
