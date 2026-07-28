@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tourism, Hajj &amp; Umrah — Saudi Arabia in open data</title>
+<meta name="description" content="An open dashboard over Saudi tourism and pilgrimage open data: visitor volumes, spending, seasonality, hotel occupancy, accommodation mix, agent networks and permits.">
+<style>
+:root{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
+  --pos:#2a78d6; --neg:#e34948;
+  --seq1:#cde2fb;--seq2:#9ec5f4;--seq3:#6da7ec;--seq4:#3987e5;--seq5:#2a78d6;--seq6:#256abf;--seq7:#184f95;
+  --warnbg:#fff8e6; --warnbd:#eda100;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19;
+    --ink:#fff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+    --pos:#3987e5; --neg:#e66767;
+    --seq1:#184f95;--seq2:#256abf;--seq3:#2a78d6;--seq4:#3987e5;--seq5:#5598e7;--seq6:#86b6ef;--seq7:#b7d3f6;
+    --warnbg:#241f10; --warnbd:#c98500;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19;
+  --ink:#fff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
+  --pos:#3987e5; --neg:#e66767;
+  --seq1:#184f95;--seq2:#256abf;--seq3:#2a78d6;--seq4:#3987e5;--seq5:#5598e7;--seq6:#86b6ef;--seq7:#b7d3f6;
+  --warnbg:#241f10; --warnbd:#c98500;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 20px 72px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:8px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px;letter-spacing:-.02em}
+.sub{color:var(--ink-2);margin:0;max-width:62ch}
+.themebtn{background:var(--surface);color:var(--ink-2);border:1px solid var(--border);
+  border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
+.themebtn:hover{color:var(--ink)}
+.note{background:var(--warnbg);border:1px solid var(--warnbd);border-radius:10px;
+  padding:12px 16px;margin:22px 0 26px;font-size:13.5px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+.heronum{font-size:56px;line-height:1;font-weight:650;letter-spacing:-.03em;margin:0}
+.herolab{color:var(--ink-2);margin:8px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi .v{font-size:27px;font-weight:620;letter-spacing:-.02em}
+.kpi .k{color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kpi .d{font-size:13px;color:var(--ink-2);margin-top:5px}
+figure{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:20px 20px 14px;margin:0 0 20px}
+figcaption{margin-bottom:4px}
+.ftitle{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.fsub{color:var(--ink-2);font-size:13.5px;margin-top:4px;max-width:78ch}
+.chart{margin-top:14px;overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+.tick{fill:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.dlab{fill:var(--ink-2);font-size:11.5px;font-variant-numeric:tabular-nums}
+.dlab-s{fill:var(--ink);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.gl{stroke:var(--grid);stroke-width:1}
+.ax{stroke:var(--axis);stroke-width:1}
+.tabbtn{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;
+  cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+.tabbtn:hover{color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--grid)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.hidden{display:none}
+.tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--ink);
+  border:1px solid var(--border);border-radius:9px;padding:8px 11px;font-size:12.5px;
+  box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;z-index:50;
+  font-variant-numeric:tabular-nums;max-width:250px}
+.tip b{display:block;margin-bottom:3px;font-size:13px}
+.tip i{font-style:normal;color:var(--ink-2)}
+footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--border);
+  color:var(--ink-2);font-size:13px;line-height:1.65}
+footer a{color:var(--s1)}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+  margin:34px 0 14px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>Tourism, Hajj &amp; Umrah — Saudi Arabia in open data</h1>
+    <p class="sub">Every figure on this page is computed from Saudi government open data — the Ministry
+    of Hajj &amp; Umrah library and the Ministry of Tourism series on the National Open Data Platform.
+    No estimates, no modelling.</p>
+  </div>
+  <button class="themebtn" id="themebtn" type="button">Theme</button>
+</header>
+
+<div class="note" id="trunc"></div>
+
+<div class="hero">
+  <p class="heronum" id="heroNum">—</p>
+  <p class="herolab" id="heroLab">—</p>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<h2 class="sec">Demand</h2>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Umrah visas issued, by season</div>
+    <div class="fsub">Twenty-one seasons. The 1441–1443 collapse is COVID-19 — those seasons are shown but
+    excluded from any growth calculation.</div>
+  </figcaption>
+  <div class="chart" id="c-season"></div>
+  <button class="tabbtn" data-table="t-season">Show data table</button>
+  <div id="t-season" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Year-on-year growth by month — the peak has stopped growing</div>
+    <div class="fsub">Change in entrants, 1447 vs 1446, complete months only. The two biggest months of the
+    year, Rajab and Sha'ban, are flat: they are at a capacity ceiling. Every additional pilgrim this year
+    arrived in a historically quiet month.</div>
+  </figcaption>
+  <div class="chart" id="c-yoy"></div>
+  <button class="tabbtn" data-table="t-yoy">Show data table</button>
+  <div id="t-yoy" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Entrants by month — 1446 vs 1447</div>
+    <div class="fsub">The off-season months lift while the peak stays pinned. The final 1447 month is a
+    partial month and is drawn faded — it is excluded from all totals and growth figures.</div>
+  </figcaption>
+  <div class="chart" id="c-monthly"></div>
+  <div class="legend" id="l-monthly"></div>
+  <button class="tabbtn" data-table="t-monthly">Show data table</button>
+  <div id="t-monthly" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Average length of stay, nights per pilgrim</div>
+    <div class="fsub">Stay length collapsed through the 2000s, then began climbing again. Room-nights, not
+    headcount, drive accommodation demand — and they are growing faster than arrivals.</div>
+  </figcaption>
+  <div class="chart" id="c-stay"></div>
+</figure>
+
+<h2 class="sec">Who performs Umrah</h2>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Umrah permits by pilgrim type, 1446</div>
+    <div class="fsub">A quarter of all Umrah demand is domestic — citizens and residents who never touch a
+    travel agent. A further 1.45 million foreign pilgrims perform Umrah on a visit visa, with no Umrah
+    company involved at all.</div>
+  </figcaption>
+  <div class="chart" id="c-permits"></div>
+  <div class="legend" id="l-permits"></div>
+  <button class="tabbtn" data-table="t-permits">Show data table</button>
+  <div id="t-permits" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Where pilgrims sleep</div>
+    <div class="fsub">Only a small minority stay in four- or five-star property. The overwhelming majority
+    are in minimum-grade and two-to-three-star housing — the segment with no hospitality software.</div>
+  </figcaption>
+  <div class="chart" id="c-hotel"></div>
+  <button class="tabbtn" data-table="t-hotel">Show data table</button>
+  <div id="t-hotel" class="hidden"></div>
+</figure>
+
+<h2 class="sec">The distribution network</h2>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Licensed foreign Umrah agents, by country</div>
+    <div class="fsub">The licensed agent base nearly tripled in a single year while entrant numbers grew
+    about 14%. Load per agent fell by roughly two thirds — the channel is being widened and commoditised,
+    not closed.</div>
+  </figcaption>
+  <div class="chart" id="c-agents"></div>
+  <div class="legend" id="l-agents"></div>
+  <button class="tabbtn" data-table="t-agents">Show data table</button>
+  <div id="t-agents" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">How pilgrims arrive</div>
+    <div class="fsub">Air dominates, but the land corridor moves over 1.6 million people a year — not a
+    rounding error.</div>
+  </figcaption>
+  <div class="chart" id="c-entry"></div>
+  <div class="legend" id="l-entry"></div>
+</figure>
+
+<h2 class="sec">Tourism — the wider picture</h2>
+
+<div class="kpis" id="tkpis"></div>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Overnight visitors per month — inbound vs domestic</div>
+    <div class="fsub">Domestic travel is roughly three times inbound by headcount and far less volatile.
+    2025 is a part year (January–June) and is drawn faded.</div>
+  </figcaption>
+  <div class="chart" id="c-tflow"></div>
+  <div class="legend" id="l-tflow"></div>
+  <button class="tabbtn" data-table="t-tflow">Show data table</button>
+  <div id="t-tflow" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Tourism spending by purpose of visit, 2025</div>
+    <div class="fsub">Religious travel is the largest single purpose of inbound spending — larger than
+    leisure and business combined. This is where the two halves of this page meet: pilgrimage is not a
+    side-category of Saudi tourism, it is the core of the inbound economy.</div>
+  </figcaption>
+  <div class="chart" id="c-tspend"></div>
+  <div class="legend" id="l-tspend"></div>
+  <button class="tabbtn" data-table="t-tspend">Show data table</button>
+  <div id="t-tspend" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Hotel and apartment occupancy by region, 2024 average</div>
+    <div class="fsub">Madinah runs the highest hotel occupancy in the Kingdom. Where the apartment bar
+    sits above the hotel bar, serviced apartments are outperforming hotels in that region.</div>
+  </figcaption>
+  <div class="chart" id="c-tocc"></div>
+  <div class="legend" id="l-tocc"></div>
+  <button class="tabbtn" data-table="t-tocc">Show data table</button>
+  <div id="t-tocc" class="hidden"></div>
+</figure>
+
+<figure>
+  <figcaption>
+    <div class="ftitle">Licensed hospitality facilities by province, 2024</div>
+    <div class="fsub">Makkah is the only province where hotels outnumber apartments, and by a wide margin.
+    Everywhere else the licensed stock is dominated by apartments and other non-hotel accommodation.</div>
+  </figcaption>
+  <div class="chart" id="c-tfac"></div>
+  <div class="legend" id="l-tfac"></div>
+  <button class="tabbtn" data-table="t-tfac">Show data table</button>
+  <div id="t-tfac" class="hidden"></div>
+</figure>
+
+<h2 class="sec">Data quality</h2>
+<figure>
+  <figcaption><div class="ftitle">Known problems in the source data</div></figcaption>
+  <div id="dq" style="font-size:14px;color:var(--ink-2);line-height:1.7"></div>
+</figure>
+
+<footer>
+  <p><b>Sources:</b> Ministry of Hajj &amp; Umrah open-data library —
+  <a href="https://haj.gov.sa/en/Open-Data" target="_blank" rel="noopener">haj.gov.sa/en/Open-Data</a>
+  — and Ministry of Tourism series via the Saudi National Open Data Platform —
+  <a href="https://open.data.gov.sa/en/datasets?category=tourism" target="_blank" rel="noopener">open.data.gov.sa</a>.
+  Captured <span id="cap"></span>. Both reused under the Saudi Open Data License.</p>
+  <p>This page is an independent analysis. It is not affiliated with, endorsed by, or produced by the
+  Ministry of Hajj &amp; Umrah or any government body. Figures are reproduced from published open data;
+  responsibility for the interpretation shown here rests with the authors, not the source. Where the
+  source data is incomplete or internally inconsistent, that is stated rather than smoothed over.</p>
+  <p>No personal data is published here. The source library includes files containing individual agent
+  contact details; those files are deliberately not used on this page.</p>
+</footer>
+
+</div>
+<div class="tip" id="tip"></div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+"use strict";
+var D = window.DATA;
+if(!D){document.querySelector('.wrap').innerHTML='<p>data.js failed to load.</p>';return;}
+var NS='http://www.w3.org/2000/svg';
+var fmt=function(n){return n==null?'—':n.toLocaleString('en-US');};
+var pct=function(n){return (n>0?'+':'')+n.toFixed(1)+'%';};
+var css=function(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();};
+
+/* ---------- theme ---------- */
+var btn=document.getElementById('themebtn');
+try{var saved=localStorage.getItem('hu-theme');
+  if(saved)document.documentElement.setAttribute('data-theme',saved);}catch(e){}
+btn.addEventListener('click',function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var sysDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var next=cur? (cur==='dark'?'light':'dark') : (sysDark?'light':'dark');
+  document.documentElement.setAttribute('data-theme',next);
+  try{localStorage.setItem('hu-theme',next);}catch(e){}
+  renderAll();
+});
+
+/* ---------- tooltip ---------- */
+var tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity='1';moveTip(e);}
+function moveTip(e){
+  var x=e.clientX+14,y=e.clientY+14;
+  var r=tip.getBoundingClientRect();
+  if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;
+  if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+}
+function hideTip(){tip.style.opacity='0';}
+function hoverable(el,html){
+  el.addEventListener('mouseenter',function(e){showTip(e,html);});
+  el.addEventListener('mousemove',moveTip);
+  el.addEventListener('mouseleave',hideTip);
+}
+
+function el(tag,attrs){var n=document.createElementNS(NS,tag);
+  for(var k in attrs){n.setAttribute(k,attrs[k]);}return n;}
+function svgRoot(host,w,h){
+  host.innerHTML='';
+  var s=el('svg',{viewBox:'0 0 '+w+' '+h,width:w,height:h,role:'img'});
+  host.appendChild(s);return s;
+}
+function niceMax(v){
+  var p=Math.pow(10,Math.floor(Math.log10(v))),steps=[1,1.2,1.5,2,2.5,3,4,5,6,8,10];
+  for(var i=0;i<steps.length;i++){if(v<=steps[i]*p)return steps[i]*p;}
+  return 10*p;
+}
+
+/* ---------- 1. visas by season (area, one hue) ---------- */
+function chartSeason(){
+  var d=D.visas_by_season, host=document.getElementById('c-season');
+  var W=Math.max(720,host.clientWidth||720),H=300,L=64,R=16,T=16,B=40;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,d.map(function(x){return x.visas;})));
+  var x=function(i){return L+i*(W-L-R)/(d.length-1);};
+  var y=function(v){return H-B-(v/max)*(H-T-B);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'gl'}));
+    var t=el('text',{x:L-10,y:y(v)+4,'text-anchor':'end',class:'tick'});
+    t.textContent=(v/1e6).toFixed(1)+'M';s.appendChild(t);}
+  var dd='';
+  d.forEach(function(p,i){dd+=(i?'L':'M')+x(i)+','+y(p.visas);});
+  var area=dd+'L'+x(d.length-1)+','+(H-B)+'L'+x(0)+','+(H-B)+'Z';
+  s.appendChild(el('path',{d:area,fill:css('--s1'),opacity:'.12'}));
+  s.appendChild(el('path',{d:dd,fill:'none',stroke:css('--s1'),'stroke-width':2,
+    'stroke-linejoin':'round','stroke-linecap':'round'}));
+  d.forEach(function(p,i){
+    var c=el('circle',{cx:x(i),cy:y(p.visas),r:p.covid?4:4.5,
+      fill:p.covid?css('--surface'):css('--s1'),stroke:css('--s1'),'stroke-width':2});
+    hoverable(c,'<b>Season '+p.season+'</b>'+fmt(p.visas)+' visas'+(p.covid?'<br><i>COVID-19 season</i>':''));
+    s.appendChild(c);
+    if(i%2===0||i===d.length-1){
+      var t=el('text',{x:x(i),y:H-B+18,'text-anchor':'middle',class:'tick'});
+      t.textContent=p.season;s.appendChild(t);}
+  });
+  var last=d[d.length-1];
+  var lab=el('text',{x:x(d.length-1)-6,y:y(last.visas)-12,'text-anchor':'end',class:'dlab-s'});
+  lab.textContent=(last.visas/1e6).toFixed(2)+'M';s.appendChild(lab);
+  var cv=d.filter(function(p){return p.covid;});
+  if(cv.length){
+    var mid=d.indexOf(cv[Math.floor(cv.length/2)]);
+    var ct=el('text',{x:x(mid),y:y(max*0.30),'text-anchor':'middle',class:'dlab'});
+    ct.textContent='COVID-19';s.appendChild(ct);}
+  table('t-season',['Season','Umrah visas'],d.map(function(p){
+    return [p.season+(p.covid?' (COVID)':''),fmt(p.visas)];}));
+}
+
+/* ---------- 2. YoY by month (diverging bars) ---------- */
+function chartYoY(){
+  var d=D.yoy_by_month, host=document.getElementById('c-yoy');
+  var W=Math.max(720,host.clientWidth||720),H=300,L=88,R=54,T=12,B=30;
+  var s=svgRoot(host,W,H);
+  var pos=Math.max.apply(null,d.map(function(p){return Math.max(p.entrants,0);}));
+  var neg=Math.max.apply(null,d.map(function(p){return Math.max(-p.entrants,0);}));
+  pos=Math.ceil(pos/5)*5; neg=Math.max(Math.ceil(neg/5)*5,pos*0.06);
+  var span=pos+neg, plot=W-L-R;
+  var bw=(H-T-B)/d.length, bh=Math.min(24,bw*0.62);
+  var zero=L+plot*(neg/span);
+  var sx=function(v){return plot*(Math.abs(v)/span);};
+  s.appendChild(el('line',{x1:zero,x2:zero,y1:T,y2:H-B,class:'ax'}));
+  d.forEach(function(p,i){
+    var cy=T+i*bw+bw/2, w=Math.abs(sx(p.entrants)), pos=p.entrants>=0;
+    var x0=pos?zero:zero-w, col=pos?css('--pos'):css('--neg');
+    var r=el('rect',{x:x0,y:cy-bh/2,width:Math.max(w,1.5),height:bh,
+      fill:col,rx:4,ry:4});
+    hoverable(r,'<b>'+p.month+'</b>entrants '+pct(p.entrants)+
+      (p.visas!=null?'<br><i>visas '+pct(p.visas)+'</i>':''));
+    s.appendChild(r);
+    var t=el('text',{x:L-12,y:cy+4,'text-anchor':'end',class:'dlab'});
+    t.textContent=p.month;s.appendChild(t);
+    var vl=el('text',{x:pos?x0+w+8:x0-8,y:cy+4,'text-anchor':pos?'start':'end',class:'dlab-s'});
+    vl.textContent=pct(p.entrants);s.appendChild(vl);
+  });
+  table('t-yoy',['Month','Entrants YoY','Visas YoY'],d.map(function(p){
+    return [p.month,pct(p.entrants),p.visas!=null?pct(p.visas):'—'];}));
+}
+
+/* ---------- 3. monthly two-series line ---------- */
+function chartMonthly(){
+  var d=D.monthly.filter(function(m){return m.e1446!=null||m.e1447!=null;});
+  var host=document.getElementById('c-monthly');
+  var W=Math.max(720,host.clientWidth||720),H=320,L=64,R=20,T=16,B=44;
+  var s=svgRoot(host,W,H);
+  var vals=[];d.forEach(function(m){if(m.e1446)vals.push(m.e1446);if(m.e1447)vals.push(m.e1447);});
+  var max=niceMax(Math.max.apply(null,vals));
+  var x=function(i){return L+i*(W-L-R)/(d.length-1);};
+  var y=function(v){return H-B-(v/max)*(H-T-B);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'gl'}));
+    var t=el('text',{x:L-10,y:y(v)+4,'text-anchor':'end',class:'tick'});
+    t.textContent=(v/1e6).toFixed(1)+'M';s.appendChild(t);}
+  /* `partial` marks the 1447 cut-off only — 1446 is a complete season */
+  [['e1446',css('--s1'),'1446',false],['e1447',css('--s2'),'1447',true]].forEach(function(sr){
+    var key=sr[0],col=sr[1],canBePartial=sr[3];
+    var pts=[],partialIdx=-1;
+    d.forEach(function(m,i){
+      if(m[key]==null)return;
+      var isP=canBePartial&&m.partial;
+      pts.push([i,m[key],isP]);
+      if(isP)partialIdx=pts.length-1;});
+    var solid=partialIdx>=0?pts.slice(0,partialIdx+1):pts;
+    var dd='';solid.forEach(function(p,i){dd+=(i?'L':'M')+x(p[0])+','+y(p[1]);});
+    if(partialIdx>0){
+      var a=pts[partialIdx-1],b=pts[partialIdx];
+      var seg='M'+x(a[0])+','+y(a[1])+'L'+x(b[0])+','+y(b[1]);
+      s.appendChild(el('path',{d:seg,fill:'none',stroke:col,'stroke-width':2,
+        'stroke-dasharray':'5 4',opacity:'.55'}));
+      dd='';solid.slice(0,partialIdx).forEach(function(p,i){dd+=(i?'L':'M')+x(p[0])+','+y(p[1]);});
+    }
+    s.appendChild(el('path',{d:dd,fill:'none',stroke:col,'stroke-width':2,
+      'stroke-linejoin':'round','stroke-linecap':'round'}));
+    pts.forEach(function(p){
+      var c=el('circle',{cx:x(p[0]),cy:y(p[1]),r:4.5,fill:col,
+        stroke:css('--surface'),'stroke-width':2,opacity:p[2]?.5:1});
+      hoverable(c,'<b>'+d[p[0]].month+' '+sr[2]+'</b>'+fmt(p[1])+' entrants'+
+        (p[2]?'<br><i>partial month — excluded from totals</i>':''));
+      s.appendChild(c);});
+  });
+  d.forEach(function(m,i){
+    var t=el('text',{x:x(i),y:H-B+18,'text-anchor':'middle',class:'tick'});
+    t.textContent=m.month.length>9?m.month.slice(0,7)+'…':m.month;
+    s.appendChild(t);
+    if(m.partial){var p2=el('text',{x:x(i),y:H-B+32,'text-anchor':'middle',class:'tick'});
+      p2.textContent='partial';p2.setAttribute('opacity','.8');s.appendChild(p2);}
+  });
+  legend('l-monthly',[['1446',css('--s1')],['1447',css('--s2')]]);
+  table('t-monthly',['Month','Entrants 1446','Entrants 1447','Visas 1446','Visas 1447'],
+    d.map(function(m){return [m.month+(m.partial?' (partial)':''),fmt(m.e1446),fmt(m.e1447),
+      fmt(m.v1446),fmt(m.v1447)];}));
+}
+
+/* ---------- 4. length of stay ---------- */
+function chartStay(){
+  var d=D.stay_by_season, host=document.getElementById('c-stay');
+  var W=Math.max(720,host.clientWidth||720),H=250,L=52,R=18,T=16,B=38;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,d.map(function(p){return p.nights;})));
+  var x=function(i){return L+i*(W-L-R)/(d.length-1);};
+  var y=function(v){return H-B-(v/max)*(H-T-B);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'gl'}));
+    var t=el('text',{x:L-10,y:y(v)+4,'text-anchor':'end',class:'tick'});
+    t.textContent=v.toFixed(0);s.appendChild(t);}
+  var dd='';d.forEach(function(p,i){dd+=(i?'L':'M')+x(i)+','+y(p.nights);});
+  s.appendChild(el('path',{d:dd,fill:'none',stroke:css('--s1'),'stroke-width':2,
+    'stroke-linejoin':'round','stroke-linecap':'round'}));
+  d.forEach(function(p,i){
+    var c=el('circle',{cx:x(i),cy:y(p.nights),r:4,fill:p.covid?css('--surface'):css('--s1'),
+      stroke:css('--s1'),'stroke-width':2});
+    hoverable(c,'<b>Season '+p.season+'</b>'+p.nights.toFixed(2)+' nights'+
+      (p.covid?'<br><i>COVID-19 season</i>':''));
+    s.appendChild(c);
+    if(i%3===0||i===d.length-1){var t=el('text',{x:x(i),y:H-B+18,'text-anchor':'middle',class:'tick'});
+      t.textContent=p.season;s.appendChild(t);}});
+  var lastv=d[d.length-1];
+  var lab=el('text',{x:x(d.length-1)-6,y:y(lastv.nights)-12,'text-anchor':'end',class:'dlab-s'});
+  lab.textContent=lastv.nights.toFixed(1)+' nights';s.appendChild(lab);
+}
+
+/* ---------- 5. permit types (stacked bar + direct labels) ---------- */
+function chartPermits(){
+  var d=D.permit_types, host=document.getElementById('c-permits');
+  var W=Math.max(720,host.clientWidth||720),H=134,L=16,R=16,T=26,BH=54;
+  var s=svgRoot(host,W,H);
+  var tot=d.reduce(function(a,b){return a+b.permits;},0);
+  var cols=[css('--s1'),css('--s2'),css('--s3'),css('--s4'),css('--s5')];
+  var xpos=L, avail=W-L-R, GAP=2;
+  d.forEach(function(p,i){
+    var w=(p.permits/tot)*(avail-GAP*(d.length-1));
+    var r=el('rect',{x:xpos,y:T,width:Math.max(w,2),height:BH,fill:cols[i%5],rx:4,ry:4});
+    hoverable(r,'<b>'+p.type+'</b>'+fmt(p.permits)+' permits<br><i>'+
+      (p.permits/tot*100).toFixed(1)+'% of all Umrah permits</i>');
+    s.appendChild(r);
+    var share=p.permits/tot*100;
+    if(share>6){
+      var t=el('text',{x:xpos+w/2,y:T+BH/2+5,'text-anchor':'middle',
+        fill:'#fff',style:'font-size:13px;font-weight:600;font-variant-numeric:tabular-nums'});
+      t.textContent=share.toFixed(1)+'%';s.appendChild(t);
+    } else {
+      var t2=el('text',{x:xpos+w/2,y:T-9,'text-anchor':'middle',class:'dlab'});
+      t2.textContent=share.toFixed(1)+'%';s.appendChild(t2);
+    }
+    xpos+=w+GAP;
+  });
+  var dom=d.filter(function(p){return /citizen|Resident/i.test(p.type);})
+           .reduce(function(a,b){return a+b.permits;},0);
+  var note=el('text',{x:L,y:T+BH+30,class:'dlab'});
+  note.textContent='Domestic (citizens + residents): '+(dom/tot*100).toFixed(1)+
+    '% — never uses an Umrah company.';
+  s.appendChild(note);
+  legend('l-permits',d.map(function(p,i){return [p.type,cols[i%5]];}));
+  table('t-permits',['Pilgrim type','Permits','Share'],d.map(function(p){
+    return [p.type,fmt(p.permits),(p.permits/tot*100).toFixed(1)+'%'];}));
+}
+
+/* ---------- 6. hotel class (sequential horizontal bars) ---------- */
+function chartHotel(){
+  var d=D.hotel_class.filter(function(p){return p.pilgrims>1000;});
+  var host=document.getElementById('c-hotel');
+  var W=Math.max(720,host.clientWidth||720),L=124,R=76,T=8,BH=34,GAP=10;
+  var H=T+d.length*(BH+GAP)+10;
+  var s=svgRoot(host,W,H);
+  var tot=D.hotel_class.reduce(function(a,b){return a+b.pilgrims;},0);
+  var max=Math.max.apply(null,d.map(function(p){return p.pilgrims;}));
+  var ramp=['--seq7','--seq6','--seq5','--seq4','--seq3','--seq2','--seq1'];
+  var sorted=d.slice().sort(function(a,b){return b.pilgrims-a.pilgrims;});
+  d.forEach(function(p,i){
+    var yy=T+i*(BH+GAP);
+    var w=(p.pilgrims/max)*(W-L-R);
+    var rank=sorted.indexOf(p);
+    var col=css(ramp[Math.min(rank,ramp.length-1)]);
+    var r=el('rect',{x:L,y:yy,width:Math.max(w,2),height:BH,fill:col,rx:4,ry:4});
+    hoverable(r,'<b>'+p['class']+'</b>'+fmt(p.pilgrims)+' pilgrims<br><i>'+
+      (p.pilgrims/tot*100).toFixed(1)+'% of classified stays</i>');
+    s.appendChild(r);
+    var lb=el('text',{x:L-12,y:yy+BH/2+5,'text-anchor':'end',class:'dlab'});
+    lb.textContent=p['class'];s.appendChild(lb);
+    var vl=el('text',{x:L+w+10,y:yy+BH/2+5,class:'dlab-s'});
+    vl.textContent=(p.pilgrims/tot*100).toFixed(1)+'%';s.appendChild(vl);
+  });
+  table('t-hotel',['Accommodation class','Pilgrims','Share'],D.hotel_class.map(function(p){
+    return [p['class'],fmt(p.pilgrims),(p.pilgrims/tot*100).toFixed(2)+'%'];}));
+}
+
+/* ---------- 7. agents dumbbell ---------- */
+function chartAgents(){
+  var d=D.agents.top.filter(function(p){return p.y1446!=null;});
+  var host=document.getElementById('c-agents');
+  var W=Math.max(720,host.clientWidth||720),L=132,R=64,T=18,RH=26;
+  var H=T+d.length*RH+26;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,d.map(function(p){return Math.max(p.y1447,p.y1446||0);})));
+  var x=function(v){return L+(v/max)*(W-L-R);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:x(v),x2:x(v),y1:T-6,y2:H-24,class:'gl'}));
+    var t=el('text',{x:x(v),y:H-8,'text-anchor':'middle',class:'tick'});
+    t.textContent=fmt(v);s.appendChild(t);}
+  d.forEach(function(p,i){
+    var yy=T+i*RH+RH/2;
+    s.appendChild(el('line',{x1:x(p.y1446),x2:x(p.y1447),y1:yy,y2:yy,
+      stroke:css('--axis'),'stroke-width':2,'stroke-linecap':'round'}));
+    var c1=el('circle',{cx:x(p.y1446),cy:yy,r:5,fill:css('--s1'),
+      stroke:css('--surface'),'stroke-width':2});
+    var c2=el('circle',{cx:x(p.y1447),cy:yy,r:5,fill:css('--s2'),
+      stroke:css('--surface'),'stroke-width':2});
+    var mult=p.y1446?((p.y1447/p.y1446).toFixed(1)+'×'):'—';
+    var h='<b>'+p.country+'</b>1446: '+fmt(p.y1446)+'<br>1447: '+fmt(p.y1447)+'<br><i>'+mult+'</i>';
+    hoverable(c1,h);hoverable(c2,h);
+    s.appendChild(c1);s.appendChild(c2);
+    var lb=el('text',{x:L-12,y:yy+4,'text-anchor':'end',class:'dlab'});
+    lb.textContent=p.country;s.appendChild(lb);
+    var vl=el('text',{x:W-R+10,y:yy+4,class:'dlab-s'});
+    vl.textContent=mult;s.appendChild(vl);
+  });
+  legend('l-agents',[['1446',css('--s1')],['1447',css('--s2')]]);
+  table('t-agents',['Country','Agents 1446','Agents 1447','Multiple'],
+    D.agents.top.map(function(p){return [p.country,fmt(p.y1446),fmt(p.y1447),
+      p.y1446?(p.y1447/p.y1446).toFixed(2)+'×':'—'];}));
+}
+
+/* ---------- 8. entry channel ---------- */
+function chartEntry(){
+  var d=D.entry_channel, host=document.getElementById('c-entry');
+  var W=Math.max(720,host.clientWidth||720),H=110,L=16,R=16,T=22,BH=48;
+  var s=svgRoot(host,W,H);
+  var tot=d.reduce(function(a,b){return a+b.entrants;},0);
+  var cols=[css('--s1'),css('--s2'),css('--s3')];
+  var xp=L,avail=W-L-R,GAP=2;
+  d.forEach(function(p,i){
+    var w=(p.entrants/tot)*(avail-GAP*(d.length-1));
+    var r=el('rect',{x:xp,y:T,width:Math.max(w,2.5),height:BH,fill:cols[i%3],rx:4,ry:4});
+    hoverable(r,'<b>'+p.channel+'</b>'+fmt(p.entrants)+' entrants<br><i>'+
+      (p.entrants/tot*100).toFixed(1)+'%</i>');
+    s.appendChild(r);
+    var sh=p.entrants/tot*100;
+    if(sh>8){var t=el('text',{x:xp+w/2,y:T+BH/2+5,'text-anchor':'middle',fill:'#fff',
+      style:'font-size:13px;font-weight:600'});
+      t.textContent=p.channel+' '+sh.toFixed(1)+'%';s.appendChild(t);}
+    xp+=w+GAP;
+  });
+  legend('l-entry',d.map(function(p,i){return [p.channel+' — '+fmt(p.entrants),cols[i%3]];}));
+}
+
+/* ================= TOURISM ================= */
+function tkpis(){
+  var T=D.tourism;if(!T){return;}
+  var lastFull=function(a){for(var i=a.length-1;i>=0;i--){if(!a[i].partial)return a[i];}return a[0];};
+  var ib=lastFull(T.annual_inbound), dm=lastFull(T.annual_domestic);
+  var relig=(T.spend_inbound||[]).filter(function(p){return p.purpose==='Religious';})[0];
+  var totIn=(T.spend_inbound||[]).reduce(function(a,b){return a+b.total;},0);
+  var k=[
+    ['Inbound visitors',(ib.tourists/1000).toFixed(1)+'M',ib.year+' — SAR '+(ib.spend/1000).toFixed(1)+'bn spent'],
+    ['Domestic visitors',(dm.tourists/1000).toFixed(1)+'M',dm.year+' — SAR '+(dm.spend/1000).toFixed(1)+'bn spent'],
+    ['Inbound nights',(ib.nights/1000).toFixed(0)+'M',ib.year+' overnight stays'],
+    ['Religious share of inbound spend',relig?(relig.total/totIn*100).toFixed(0)+'%':'—','2025, largest single purpose']
+  ];
+  document.getElementById('tkpis').innerHTML=k.map(function(x){
+    return '<div class="kpi"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+
+      '</div><div class="d">'+x[2]+'</div></div>';}).join('');
+}
+
+function chartTFlow(){
+  var m=D.tourism.monthly, host=document.getElementById('c-tflow');
+  var partialYears={};D.tourism.annual_domestic.forEach(function(a){if(a.partial)partialYears[a.year]=1;});
+  var W=Math.max(760,host.clientWidth||760),H=310,L=60,R=18,T=16,B=44;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,m.map(function(p){return Math.max(p.inbound,p.domestic);})));
+  var x=function(i){return L+i*(W-L-R)/(m.length-1);};
+  var y=function(v){return H-B-(v/max)*(H-T-B);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'gl'}));
+    var t=el('text',{x:L-10,y:y(v)+4,'text-anchor':'end',class:'tick'});
+    t.textContent=(v/1000).toFixed(0)+'M';s.appendChild(t);}
+  [['domestic',css('--s1'),'Domestic'],['inbound',css('--s2'),'Inbound']].forEach(function(sr){
+    var dd='';m.forEach(function(p,i){dd+=(i?'L':'M')+x(i)+','+y(p[sr[0]]);});
+    s.appendChild(el('path',{d:dd,fill:'none',stroke:sr[1],'stroke-width':2,
+      'stroke-linejoin':'round','stroke-linecap':'round'}));
+    m.forEach(function(p,i){
+      var part=partialYears[p.year];
+      var c=el('circle',{cx:x(i),cy:y(p[sr[0]]),r:3.5,fill:sr[1],
+        stroke:css('--surface'),'stroke-width':1.5,opacity:part?.45:1});
+      hoverable(c,'<b>'+p.month+' '+p.year+'</b>'+sr[2]+' '+fmt(Math.round(p[sr[0]]*1000))+
+        ' visitors'+(part?'<br><i>part year — Jan–Jun 2025</i>':''));
+      s.appendChild(c);});
+  });
+  var seen={};
+  m.forEach(function(p,i){
+    if(seen[p.year])return;seen[p.year]=1;
+    s.appendChild(el('line',{x1:x(i),x2:x(i),y1:T,y2:H-B,class:'gl'}));
+    var t=el('text',{x:x(i)+4,y:H-B+18,class:'tick'});
+    t.textContent=p.year+(partialYears[p.year]?' (part)':'');s.appendChild(t);});
+  legend('l-tflow',[['Domestic',css('--s1')],['Inbound',css('--s2')]]);
+  table('t-tflow',['Month','Domestic (000)','Inbound (000)','Domestic LOS','Inbound LOS'],
+    m.map(function(p){return [p.month+' '+p.year,fmt(p.domestic),fmt(p.inbound),
+      p.domestic_los,p.inbound_los];}));
+}
+
+function chartTSpend(){
+  var T=D.tourism, host=document.getElementById('c-tspend');
+  var purposes={};
+  T.spend_inbound.forEach(function(p){purposes[p.purpose]=purposes[p.purpose]||{};purposes[p.purpose].inb=p.total;});
+  T.spend_domestic.forEach(function(p){purposes[p.purpose]=purposes[p.purpose]||{};purposes[p.purpose].dom=p.total;});
+  var rows=Object.keys(purposes).map(function(k){return {purpose:k,inb:purposes[k].inb||0,dom:purposes[k].dom||0};});
+  rows.sort(function(a,b){return (b.inb+b.dom)-(a.inb+a.dom);});
+  var W=Math.max(760,host.clientWidth||760),L=176,R=86,T0=10,RH=52;
+  var H=T0+rows.length*RH+30;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,rows.map(function(r){return Math.max(r.inb,r.dom);})));
+  var bh=17;
+  rows.forEach(function(r,i){
+    var yy=T0+i*RH;
+    [[r.inb,css('--s2'),'Inbound',0],[r.dom,css('--s1'),'Domestic',bh+3]].forEach(function(b){
+      var w=(b[0]/max)*(W-L-R);
+      var rc=el('rect',{x:L,y:yy+b[3],width:Math.max(w,1.5),height:bh,fill:b[1],rx:4,ry:4});
+      hoverable(rc,'<b>'+r.purpose+'</b>'+b[2]+': SAR '+fmt(b[0])+' million');
+      s.appendChild(rc);
+      var vl=el('text',{x:L+w+8,y:yy+b[3]+bh-4,class:'dlab-s'});
+      vl.textContent=(b[0]/1000).toFixed(1)+'bn';s.appendChild(vl);
+    });
+    var lb=el('text',{x:L-12,y:yy+bh+6,'text-anchor':'end',class:'dlab'});
+    lb.textContent=r.purpose;s.appendChild(lb);
+  });
+  var ax=el('text',{x:L,y:H-8,class:'tick'});
+  ax.textContent='SAR billion, 2025';s.appendChild(ax);
+  legend('l-tspend',[['Inbound',css('--s2')],['Domestic',css('--s1')]]);
+  table('t-tspend',['Purpose','Inbound (SAR mn)','Domestic (SAR mn)'],
+    rows.map(function(r){return [r.purpose,fmt(r.inb),fmt(r.dom)];}));
+}
+
+function chartTOcc(){
+  var d=D.tourism.occupancy, host=document.getElementById('c-tocc');
+  var W=Math.max(760,host.clientWidth||760),L=150,R=64,T=10,RH=30;
+  var H=T+d.length*RH+30;
+  var s=svgRoot(host,W,H);
+  var max=100;
+  var x=function(v){return L+(v/max)*(W-L-R);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:x(v),x2:x(v),y1:T-4,y2:H-26,class:'gl'}));
+    var t=el('text',{x:x(v),y:H-8,'text-anchor':'middle',class:'tick'});
+    t.textContent=v+'%';s.appendChild(t);}
+  d.forEach(function(p,i){
+    var yy=T+i*RH+RH/2;
+    var h=p.hotels||0, a=p.apartments||0;
+    s.appendChild(el('line',{x1:x(Math.min(h,a)),x2:x(Math.max(h,a)),y1:yy,y2:yy,
+      stroke:css('--axis'),'stroke-width':2,'stroke-linecap':'round'}));
+    [[h,css('--s1'),'Hotels'],[a,css('--s2'),'Apartments']].forEach(function(b){
+      if(!b[0])return;
+      var c=el('circle',{cx:x(b[0]),cy:yy,r:5,fill:b[1],stroke:css('--surface'),'stroke-width':2});
+      hoverable(c,'<b>'+p.region+'</b>'+b[2]+': '+b[0].toFixed(1)+'% average occupancy, 2024');
+      s.appendChild(c);});
+    var lb=el('text',{x:L-12,y:yy+4,'text-anchor':'end',class:'dlab'});
+    lb.textContent=p.region;s.appendChild(lb);
+    var vl=el('text',{x:W-R+10,y:yy+4,class:'dlab-s'});
+    vl.textContent=h.toFixed(0)+'%';s.appendChild(vl);
+  });
+  legend('l-tocc',[['Hotels',css('--s1')],['Apartments & other',css('--s2')]]);
+  table('t-tocc',['Region','Hotel occupancy','Apartment occupancy'],
+    d.map(function(p){return [p.region,(p.hotels||0).toFixed(1)+'%',(p.apartments||0).toFixed(1)+'%'];}));
+}
+
+function chartTFac(){
+  var d=D.tourism.facilities.slice(0,13), host=document.getElementById('c-tfac');
+  var W=Math.max(760,host.clientWidth||760),L=150,R=70,T=10,RH=30,bh=17;
+  var H=T+d.length*RH+30;
+  var s=svgRoot(host,W,H);
+  var max=niceMax(Math.max.apply(null,d.map(function(p){return p.total;})));
+  var sc=function(v){return (v/max)*(W-L-R);};
+  for(var g=0;g<=4;g++){var v=max*g/4;
+    s.appendChild(el('line',{x1:L+sc(v),x2:L+sc(v),y1:T-4,y2:H-26,class:'gl'}));
+    var t=el('text',{x:L+sc(v),y:H-8,'text-anchor':'middle',class:'tick'});
+    t.textContent=fmt(v);s.appendChild(t);}
+  d.forEach(function(p,i){
+    var yy=T+i*RH+(RH-bh)/2, xp=L;
+    [[p.hotels,css('--s1'),'Hotels'],[p.apartments,css('--s2'),'Apartments & other']].forEach(function(b){
+      var w=sc(b[0]);
+      var r=el('rect',{x:xp,y:yy,width:Math.max(w,1.5),height:bh,fill:b[1],rx:4,ry:4});
+      hoverable(r,'<b>'+p.province+'</b>'+b[2]+': '+fmt(b[0])+' licensed facilities<br><i>'+
+        (b[0]/p.total*100).toFixed(0)+'% of the province</i>');
+      s.appendChild(r);xp+=w+2;});
+    var lb=el('text',{x:L-12,y:yy+bh-3,'text-anchor':'end',class:'dlab'});
+    lb.textContent=p.province;s.appendChild(lb);
+    var vl=el('text',{x:xp+8,y:yy+bh-3,class:'dlab-s'});
+    vl.textContent=fmt(p.total);s.appendChild(vl);
+  });
+  legend('l-tfac',[['Hotels',css('--s1')],['Apartments & other',css('--s2')]]);
+  table('t-tfac',['Province','Hotels','Apartments & other','Total'],
+    D.tourism.facilities.map(function(p){return [p.province,fmt(p.hotels),fmt(p.apartments),fmt(p.total)];}));
+}
+
+/* ---------- helpers ---------- */
+function legend(id,items){
+  var h=document.getElementById(id);if(!h)return;h.innerHTML='';
+  items.forEach(function(it){
+    var sp=document.createElement('span');
+    sp.innerHTML='<i class="sw" style="background:'+it[1]+'"></i>'+it[0];
+    h.appendChild(sp);});
+}
+function table(id,head,rows){
+  var h=document.getElementById(id);if(!h)return;
+  var t='<table><thead><tr>'+head.map(function(x){return '<th>'+x+'</th>';}).join('')+
+    '</tr></thead><tbody>';
+  rows.forEach(function(r){t+='<tr>'+r.map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';});
+  h.innerHTML=t+'</tbody></table>';
+}
+document.querySelectorAll('.tabbtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var t=document.getElementById(b.dataset.table);
+    var open=!t.classList.contains('hidden');
+    t.classList.toggle('hidden');
+    b.textContent=open?'Show data table':'Hide data table';});
+});
+
+/* ---------- header numbers ---------- */
+function headline(){
+  var g=D.growth, last=D.visas_by_season[D.visas_by_season.length-1];
+  document.getElementById('heroNum').textContent=(last.visas/1e6).toFixed(2)+' million';
+  document.getElementById('heroLab').textContent=
+    'Umrah visas issued in season '+last.season+' — up from 3.36 million in 1426.';
+  document.getElementById('trunc').innerHTML='<b>Read this first.</b> '+D.meta.truncation_rule+
+    ' Growth figures on this page compare the '+g.complete_months+
+    ' complete months of 1447 against the same months of 1446.';
+  document.getElementById('cap').textContent=D.meta.captured;
+  var stay=D.stay_by_season[D.stay_by_season.length-1];
+  var nights=Math.round(last.visas*stay.nights/1e6);
+  var k=[
+    ['Entrant growth',pct(g.entrants_pct),g.complete_months+' matched months, 1447 vs 1446'],
+    ['Room-nights / yr','~'+nights+'M',last.season+' visas × '+stay.nights.toFixed(1)+' nights average'],
+    ['Licensed foreign agents',fmt(D.agents.total_1447),
+      'up from '+fmt(D.agents.total_1446)+' — '+(D.agents.total_1447/D.agents.total_1446).toFixed(1)+
+      '× in one year, '+D.agents.countries_1447+' countries'],
+    ['Stay below 4-star',belowFour()+'%','of classified Umrah stays']
+  ];
+  document.getElementById('kpis').innerHTML=k.map(function(x){
+    return '<div class="kpi"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+
+      '</div><div class="d">'+x[2]+'</div></div>';}).join('');
+}
+function belowFour(){
+  var t=D.hotel_class.reduce(function(a,b){return a+b.pilgrims;},0);
+  var b=D.hotel_class.filter(function(p){return !/^[45]-star$/.test(p['class']);})
+        .reduce(function(a,c){return a+c.pilgrims;},0);
+  return (b/t*100).toFixed(1);
+}
+function dq(){
+  var r=D.rawdah||{};
+  document.getElementById('dq').innerHTML=
+  '<p><b>The 1447 truncation.</b> Every 1447 file was last published 2026-03-05, mid-Ramadan 1447. '+
+  'Ramadan is the last month present and is incomplete. Naively comparing it year-on-year produces a '+
+  'false −44% "collapse". This page excludes it from every total and growth figure.</p>'+
+  '<p><b>Duplicate datasets.</b> Six pairs in the source library are byte-identical duplicates. The file '+
+  'named for transport companies is a copy of the Hajj-companies file — there is no transport data in the '+
+  'library, despite the name.</p>'+
+  '<p><b>Unusable fields.</b> The Nusuk regional-users file has region uncaptured on 91% of rows; only its '+
+  'total is safe to use. The accommodation-classification file carries no year label, so the hotel mix '+
+  'above is undated.</p>'+
+  '<p><b>COVID seasons.</b> 1442 recorded 13,300 visas. Including 1441–1443 in any trend or CAGR '+
+  'calculation produces nonsense; they are shown but excluded.</p>'+
+  (r.ratio?('<p><b>Rawdah capacity.</b> During Ramadan 1446 the Rawdah issued a mean of '+fmt(r.rawdah_mean)+
+  ' permits/day with a standard deviation of just '+fmt(r.rawdah_sd)+' against a peak of '+fmt(r.rawdah_max)+
+  ' — a hard cap, not demand. Umrah permits over the same days averaged '+fmt(r.umrah_mean)+
+  ', a structural '+r.ratio+':1 squeeze.</p>'):'');
+}
+
+function renderAll(){
+  headline();dq();
+  chartSeason();chartYoY();chartMonthly();chartStay();
+  chartPermits();chartHotel();chartAgents();chartEntry();
+  if(D.tourism){tkpis();chartTFlow();chartTSpend();chartTOcc();chartTFac();}
+}
+renderAll();
+var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(renderAll,180);});
+})();
+</script>
+</body>
+</html>
