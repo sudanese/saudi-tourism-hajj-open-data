@@ -31,19 +31,21 @@ and no CORS problem.
 
 ```bash
 pip install openpyxl
-python3 build_data.py           # reads the vault mirror, rewrites data.js + data.json
+python3 build_data.py           # reads the source XLSX mirror, rewrites data.js + data.json
 ```
 
-Point it elsewhere with `MOHU_FILES=/path/to/xlsx python3 build_data.py`.
-Defaults: `MOHU_FILES=~/knowledgevalute/hajj-umrah-open-data/files` and
-`TOURISM_FILES=~/knowledgevalute/hajj-umrah-open-data/national-platform/tourism`.
+Point the two env vars at your local mirror of the source files:
+`MOHU_FILES=/path/to/mohu/xlsx TOURISM_FILES=/path/to/tourism/xlsx python3 build_data.py`
+(defaults: `./source-data/files` and `./source-data/tourism`).
 
 **2025 tourism data is a part year (January–June)** and is flagged `partial` in the same way as
 the 1447 pilgrimage months — never summed against a complete year.
 
-To re-pull the source library itself from the Ministry, or the wider national platform,
-see `hajj-umrah-open-data/README.md` and `national-platform/README.md` in the vault —
-both record the API recipe.
+To re-pull the source library itself: the Ministry files are individual XLSX links on
+<https://haj.gov.sa/en/Open-Data> (enumerable via the site sitemap), and the national platform
+exposes a public JSON API — `POST https://open.data.gov.sa/api/datasets/list` with a browser
+User-Agent and Referer, body `{"categories":["hajj-and-umrah"]}`; files then download from
+`https://open.data.gov.sa/odp-public/<url>`.
 
 ## Deploy
 
