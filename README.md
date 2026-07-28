@@ -1,6 +1,11 @@
-# Umrah & Hajj — Saudi Arabia in open data
+# Tourism, Hajj & Umrah — Saudi Arabia in open data
 
-A public dashboard over the Saudi Ministry of Hajj & Umrah open-data library.
+A public dashboard over Saudi government open data:
+
+- **Ministry of Hajj & Umrah** open-data library — pilgrim volumes, seasonality, permits,
+  accommodation class, agent networks
+- **Ministry of Tourism** series via the National Open Data Platform — inbound and domestic
+  visitors, spending by purpose, hotel and apartment occupancy, licensed facility stock
 
 **Static. No backend, no database, no build step, no dependencies.** Three files ship:
 `index.html`, `data.js`, `data.json`. Total under 40 KB.
@@ -26,7 +31,11 @@ python3 build_data.py           # reads the vault mirror, rewrites data.js + dat
 ```
 
 Point it elsewhere with `MOHU_FILES=/path/to/xlsx python3 build_data.py`.
-Default source: `~/knowledgevalute/hajj-umrah-open-data/files`.
+Defaults: `MOHU_FILES=~/knowledgevalute/hajj-umrah-open-data/files` and
+`TOURISM_FILES=~/knowledgevalute/hajj-umrah-open-data/national-platform/tourism`.
+
+**2025 tourism data is a part year (January–June)** and is flagged `partial` in the same way as
+the 1447 pilgrimage months — never summed against a complete year.
 
 To re-pull the source library itself from the Ministry, or the wider national platform,
 see `hajj-umrah-open-data/README.md` and `national-platform/README.md` in the vault —
@@ -36,14 +45,33 @@ both record the API recipe.
 
 Any static host. No configuration.
 
+### GitHub Pages (recommended — free, and the repo is already set up)
+
+The repo is initialised with a workflow at `.github/workflows/deploy.yml` that publishes on
+every push to `main`. To go live:
+
 ```bash
-# Cloudflare Pages
-npx wrangler pages deploy . --project-name umrah-open-data
+gh repo create umrah-open-data --public --source=. --push
+# then: Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+```
 
-# or Netlify
-npx netlify deploy --prod --dir .
+Or with an existing remote:
 
-# or GitHub Pages — commit and enable Pages on the branch
+```bash
+git remote add origin git@github.com:<you>/<repo>.git
+git push -u origin main
+```
+
+The site then serves at `https://<you>.github.io/<repo>/`. A custom domain goes in
+Settings → Pages → Custom domain (add a `CNAME` file to the repo root).
+
+`.nojekyll` is present so GitHub serves the files as-is rather than running them through Jekyll.
+
+### Other hosts
+
+```bash
+npx wrangler pages deploy . --project-name umrah-open-data   # Cloudflare Pages
+npx netlify deploy --prod --dir .                            # Netlify
 ```
 
 ### Keeping it current
@@ -100,8 +128,10 @@ contact list on a public site is not.
 
 ## Licence and attribution
 
-Data: Ministry of Hajj & Umrah open data, <https://haj.gov.sa/en/Open-Data>, reused under the
-Saudi Open Data License. The licence requires **attribution with a link back to the source
+Data: Ministry of Hajj & Umrah open data <https://haj.gov.sa/en/Open-Data>, and Ministry of
+Tourism series via the Saudi National Open Data Platform
+<https://open.data.gov.sa/en/datasets?category=tourism>. Both reused under the Saudi Open Data
+License. The licence requires **attribution with a link back to the source
 portal** — that link is in the page footer and must stay there.
 
 The footer also carries the required disclaimers: that this is an independent analysis, not
